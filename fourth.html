@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Favorite Person ✨</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --p: #ffafbd; --s: #ffc3a0; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, var(--p), var(--s)); display: flex; justify-content: center; align-items: center; overflow: hidden; touch-action: manipulation; }
+        #card { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); width: 90%; max-width: 350px; text-align: center; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 10; }
+        .hidden { display: none; }
+        .btn { background: white; color: #ff4b2b; border: none; padding: 12px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 10px; transition: 0.3s; }
+        
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+        .tile { height: 75px; background: white; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; transform: rotateY(180deg); transition: transform 0.3s; color: #333; }
+        .tile span { font-size: 0.6rem; font-weight: bold; display: block; color: #d4a017; }
+        .tile.flipped { transform: rotateY(0deg); }
+        .tile.matched { background: #fff3e0; border: 2px solid #ff4b2b; }
+        
+        #scary { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+    <div id="scary">
+        <h1 style="color:red; font-size: 5rem; margin: 0;">BOO! 👻</h1>
+        <p style="color: white;">Gotcha!</p>
+    </div>
+
+    <div id="card">
+        <div id="step1">
+            <h2>Hurry! Answer this:</h2>
+            <p>Who is the best person in the world?</p>
+            <button class="btn" onclick="startMemory()">Me (obviously) 👑</button>
+            <button class="btn" id="run-btn" onmouseover="moveBtn()" ontouchstart="moveBtn()">You</button>
+        </div>
+
+        <div id="step2" class="hidden">
+            <h3>Match the Pairs! 🧸</h3>
+            <p style="font-size: 0.8rem;">Find all 6 pairs to see your surprise.</p>
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div id="step3" class="hidden">
+            <h1>For You 🧸</h1>
+            <p style="color: #5d4037; line-height: 1.6; font-weight: 500; background: rgba(255,255,255,0.4); padding: 15px; border-radius: 20px;">
+                Just a quick reminder: You’re stuck with me because you’re officially my favorite person ever! 🧸 <br><br>
+                Life is just better when I'm talking to you, and I can't wait until we're together again. <br><br>
+                Thanks for being my person and for always knowing how to make me laugh. I miss you tons! 🌷
+            </p>
+            <button class="btn" onclick="location.reload()">Send a Heart? ❤️</button>
+        </div>
+    </div>
+
+    <script>
+        function moveBtn() {
+            const b = document.getElementById('run-btn');
+            b.style.position = 'absolute';
+            b.style.left = Math.random() * 70 + '%';
+            b.style.top = Math.random() * 70 + '%';
+        }
+
+        // Added Butterscotch specifically
+        const icons = [
+            {i:'🍕', n:''}, {i:'🍕', n:''}, 
+            {i:'🧸', n:''}, {i:'🧸', n:''}, 
+            {i:'☕', n:''}, {i:'☕', n:''}, 
+            {i:'💖', n:''}, {i:'💖', n:''}, 
+            {i:'🫂', n:''}, {i:'🫂', n:''}, 
+            {i:'🍦', n:'Butterscotch'}, {i:'🍦', n:'Butterscotch'}
+        ];
+        
+        let flipped = [];
+        let matchedCount = 0;
+
+        function startMemory() {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            const grid = document.getElementById('grid');
+            icons.sort(() => Math.random() - 0.5);
+            
+            icons.forEach((item, index) => {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.innerHTML = `<div class="content">${item.i}${item.n ? '<span>'+item.n+'</span>' : ''}</div>`;
+                tile.style.color = "transparent"; // Hide icon initially
+                tile.dataset.icon = item.i;
+                tile.onclick = () => flip(tile);
+                grid.appendChild(tile);
+            });
+        }
+
+        function flip(tile) {
+            if (flipped.length < 2 && !tile.classList.contains('flipped')) {
+                tile.classList.add('flipped');
+                tile.style.color = "#333"; // Show icon
+                flipped.push(tile);
+                if (flipped.length === 2) setTimeout(checkMatch, 600);
+            }
+        }
+
+        function checkMatch() {
+            const [t1, t2] = flipped;
+            if (t1.dataset.icon === t2.dataset.icon) {
+                t1.classList.add('matched');
+                t2.classList.add('matched');
+                matchedCount += 2;
+                if (matchedCount === icons.length) {
+                    const s = document.getElementById('scary');
+                    s.style.display = 'flex';
+                    setTimeout(() => {
+                        s.style.display = 'none';
+                        document.getElementById('step2').classList.add('hidden');
+                        document.getElementById('step3').classList.remove('hidden');
+                        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+                    }, 1200);
+                }
+            } else {
+                t1.classList.remove('flipped');
+                t2.classList.remove('flipped');
+                t1.style.color = "transparent";
+                t2.style.color = "transparent";
+            }
+            flipped = [];
+        }
+    </script>
+</body>
+</html>
